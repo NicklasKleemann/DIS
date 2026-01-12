@@ -454,3 +454,120 @@ flowchart TD
 | Cassandra | AP | High availability for writes |
 
 Most systems aren't purely CP or AP—they make different tradeoffs for different operations. A shopping site might be AP for product browsing but CP for checkout.
+
+---
+
+## 8. Query Languages
+
+### Declarative vs Imperative
+
+| Approach | Description | Example |
+|:---------|:------------|:--------|
+| **Imperative** | Tell the computer *how* to do something step-by-step | JavaScript loops, Python scripts |
+| **Declarative** | Tell the computer *what* you want, let it figure out how | SQL, CSS, HTML |
+
+**Why declarative wins for data:**
+- The database optimizer can choose the best execution plan
+- Easier to parallelize (no explicit iteration order)
+- More concise and readable
+
+```sql
+-- Declarative (SQL): What do you want?
+SELECT * FROM animals WHERE family = 'Sharks';
+
+-- Imperative (pseudocode): How to get it?
+for each animal in animals:
+    if animal.family == 'Sharks':
+        add to result
+```
+
+### MapReduce
+
+A programming model for processing large datasets across clusters. Neither purely declarative nor imperative—somewhere in between.
+
+```
+Map: Extract data from each record → emit key-value pairs
+Reduce: Aggregate all values for each key → produce final result
+```
+
+**Example:** Count species observations by month
+
+```javascript
+// Map function: emit (month, 1) for each shark observation  
+map(doc) {
+    if (doc.family === 'Sharks') {
+        emit(doc.observationMonth, 1);
+    }
+}
+
+// Reduce function: sum counts per month
+reduce(key, values) {
+    return sum(values);
+}
+```
+
+**Trade-off:** Must write two coordinated functions. More flexible than SQL, but harder to optimize automatically.
+
+---
+
+# 📂 Summary
+
+## Key Concepts Checklist
+
+### Reliability, Scalability, Maintainability
+- [ ] Distinguish fault vs failure (component deviation vs system breakdown)
+- [ ] Know the three fault types: hardware, software, human
+- [ ] Understand redundancy as the solution to hardware faults
+- [ ] Know why software faults are more dangerous (correlated failures)
+- [ ] Understand load parameters and why they're domain-specific
+- [ ] Be able to explain Twitter's fan-out problem and hybrid solution
+- [ ] Know scale-up vs scale-out tradeoffs
+- [ ] Understand why percentiles > averages for response time
+- [ ] Know the three maintainability principles: operability, simplicity, evolvability
+
+### Data Models
+- [ ] Understand normalized (SQL) vs denormalized (Document) tradeoffs
+- [ ] Know when to use relational vs document vs graph databases
+- [ ] Understand the update problem in document databases
+- [ ] Know ACID vs BASE guarantees
+- [ ] Be able to explain impedance mismatch
+
+### CAP Theorem
+- [ ] Define consistency, availability, partition tolerance precisely
+- [ ] Understand why CA is only possible on single nodes
+- [ ] Know when to choose CP vs AP
+- [ ] Give real-world examples for each choice
+
+## Quick Reference: The Three Pillars
+
+| Pillar | Goal | Key Metric |
+|:-------|:-----|:-----------|
+| **Reliability** | Work correctly despite faults | Uptime, failure rate |
+| **Scalability** | Handle growth | p99 latency under load |
+| **Maintainability** | Easy to change | Time to ship new features |
+
+## Quick Reference: Database Selection
+
+```
+Need ACID transactions?     → Relational (PostgreSQL, MySQL)
+Self-contained documents?   → Document (MongoDB, CouchDB)
+Simple key lookups?         → Key-Value (Redis, DynamoDB)
+Complex relationships?      → Graph (Neo4j) or Relational
+High write availability?    → AP systems (Cassandra, DynamoDB)
+Strong consistency?         → CP systems (etcd, ZooKeeper)
+```
+
+## Quick Reference: Scaling Decision
+
+| Symptom | Likely Solution |
+|:--------|:----------------|
+| CPU maxed out | Scale up (bigger machine) or optimize code |
+| Memory full | Scale up or add caching layer |
+| Disk I/O saturated | Add read replicas or use SSDs |
+| Network bandwidth | CDN, geographic distribution |
+| Database queries slow | Add indexes, read replicas, caching |
+| Single point of failure | Replicate across availability zones |
+
+## The One Thing to Remember
+
+> **There are no silver bullets in data systems.** Every choice—SQL vs NoSQL, CP vs AP, scale-up vs scale-out—is a tradeoff. The right answer depends on your specific load parameters, failure tolerance, and consistency requirements. Understand the tradeoffs, then pick what fits.
